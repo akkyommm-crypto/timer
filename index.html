@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>インターバルタイマー</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #111, #222);
+    font-family: 'Orbitron', monospace;
+    color: #0ff;
+    text-align: center;
+  }
+  h1 {
+    font-size: 2em;
+    margin-bottom: 0.5em;
+    color: #0ff;
+    text-shadow: 0 0 10px #0ff;
+  }
+  #time {
+    font-size: 5em;
+    margin: 1em 0;
+    color: #0ff;
+    text-shadow: 0 0 20px #0ff;
+  }
+  button {
+    font-size: 1.5em;
+    margin: 0.5em;
+    padding: 0.5em 1.5em;
+    border: none;
+    border-radius: 12px;
+    background: #0ff;
+    color: #111;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 0 10px #0ff;
+  }
+  button:hover {
+    background: #0ff;
+    box-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+  }
+  #status {
+    font-size: 1.2em;
+    margin-top: 0.5em;
+    color: #0ff;
+    text-shadow: 0 0 5px #0ff;
+  }
+</style>
+</head>
+<body>
+<h1>インターバルタイマー</h1>
+<div id="time">04:50</div>
+<div id="status">準備中</div>
+<button id="startBtn">スタート</button>
+<button id="stopBtn">ストップ</button>
+
+<!-- オーディオ -->
+<audio id="beepSoundStart" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<audio id="beepSoundEnd1" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<audio id="beepSoundEnd2" preload="auto" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+<script>
+let timer;
+let countdown = 290; // 4分50秒
+const intervalSec = 10; // 終了後インターバル10秒
+
+const startBtn = document.getElementById("startBtn");
+const stopBtn = document.getElementById("stopBtn");
+const display = document.getElementById("time");
+const status = document.getElementById("status");
+const beepSoundStart = document.getElementById("beepSoundStart");
+const beepSoundEnd1 = document.getElementById("beepSoundEnd1");
+const beepSoundEnd2 = document.getElementById("beepSoundEnd2");
+
+startBtn.addEventListener("click", startInterval);
+stopBtn.addEventListener("click", stopInterval);
+
+function startInterval() {
+  stopInterval();
+  runCycle();
+}
+
+function runCycle() {
+  countdown = 290;
+  beepSoundStart.play(); // 開始音
+  updateDisplay(countdown);
+  status.textContent = "作業中";
+
+  clearInterval(timer);
+  timer = setInterval(() => {
+    countdown--;
+    updateDisplay(countdown);
+
+    if (countdown <= 0) {
+      clearInterval(timer);
+
+      // 終了ブザー音2回
+      beepSoundEnd1.play();
+      setTimeout(() => beepSoundEnd2.play(), 500);
+      status.textContent = "移動中";
+
+      // 10秒インターバル
+      let interval = intervalSec;
+      display.textContent = `移動 ${interval}s`;
+      const intervalTimer = setInterval(() => {
+        interval--;
+        display.textContent = `移動 ${interval}s`;
+        if (interval <= 0) {
+          clearInterval(intervalTimer);
+          runCycle(); // 次のサイクル
+        }
+      }, 1000);
+    }
+  }, 1000);
+}
+
+function updateDisplay(seconds) {
+  const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+  const s = String(seconds % 60).padStart(2, '0');
+  display.textContent = `${m}:${s}`;
+}
+
+function stopInterval() {
+  clearInterval(timer);
+  display.textContent = "04:50";
+  status.textContent = "停止中";
+}
+</script>
+</body>
+</html>
